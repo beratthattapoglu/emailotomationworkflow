@@ -1,0 +1,657 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "28d90757-d84a-418f-b7b9-48415425ce1d",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.from.value[0].name }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "senderName",
+              "description": "Extract the sender's name from the email.If the name is not available,return an empty string",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an extraction expert.Identify and extract only the key information from the text.If a required attribute is not present,return an empty string as its value"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4eb145c5-869d-4106-9127-3217892aff86",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "800733fa-ce12-4189-baf2-6d8c3d4e82ba",
+              "leftValue": "={{ $json.output.senderName }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "cab89832-a349-4210-abc3-f4f968bb792f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        144,
+        192
+      ],
+      "id": "2811998f-1ab8-47ab-8a26-e45e74bb5dd3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m5smv89MtQdqLCpS",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b6446f4-050f-4c57-9791-79916d2ca7eb",
+              "name": "introduction",
+              "value": "=Hi {{ $json.output.senderName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        -80
+      ],
+      "id": "e2bc55ba-748d-4031-adaf-2d846a5df362",
+      "name": "İSİM VARSA"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc5b5a87-505a-474f-92fb-f8c5e0dc1184",
+              "name": "introduction",
+              "value": "Hey,",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        80
+      ],
+      "id": "4fa9b6ea-0c72-4fca-9460-d9d8d0ada72e",
+      "name": "İSİM YOKSA"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Introduction",
+        "joinMode": "keepNonMatches",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        32
+      ],
+      "id": "6fefdf60-c517-4c9c-98e6-1dd99356967d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f317a94-1362-49fc-8aba-389476fd4e56",
+              "name": "introduction",
+              "value": "={{ $json.introduction }}",
+              "type": "string"
+            },
+            {
+              "id": "f68b12e9-d764-42cd-bcbe-a0368851771a",
+              "name": "emailbody",
+              "value": "={{ $('Gmail Trigger').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "0493c25a-2654-42bc-98aa-22f5c445bf11",
+              "name": "messageId",
+              "value": "={{ $('Gmail Trigger').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "21fe1460-ea1a-4cb9-882d-b59d070a193d",
+              "name": "theardId",
+              "value": "={{ $('Gmail Trigger').item.json.threadId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        32
+      ],
+      "id": "fb03f40f-2b8d-440c-9b70-d60e03d34142",
+      "name": "TOPLU CALISMAK ICIN NOTLAR"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        240
+      ],
+      "id": "806b073c-db6d-434e-bd5f-5d1b86c160ad",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m5smv89MtQdqLCpS",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.emailbody }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Course Request",
+              "description": "this includes inquriues about course services,pricing,availability,or related details."
+            },
+            {
+              "category": "Consultation Request",
+              "description": "This includes scheduling inital consultations or follow-up appointments"
+            },
+            {
+              "category": "Payments",
+              "description": "This includes questions about the payments "
+            },
+            {
+              "category": "Miscellaneous",
+              "description": "Emails that don't fall into any of the predefined categories."
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "Please share with me the specfic{categories}that you would like to use so ı can perform the analysis correctly.Once you have provided the categories,I will deliver the answer in JSON format,without explanations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        32
+      ],
+      "id": "b14da725-50f6-4764-97d6-73eda6231146",
+      "name": "MAIL SINIFLANDIRICI"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "labelIds": [
+          "Label_470489885114598127"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        -96
+      ],
+      "id": "a59d33a2-e9e0-4d33-b86b-5a2b9caa79aa",
+      "name": "Add label to message",
+      "webhookId": "a7038d13-40f8-40c0-8b79-2433cf46d071",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "emailType": "text",
+        "message": "=Thank you for reaching out about n8n email automation. I’d be happy to schedule a short consultation to understand your needs and suggest the best workflow setup.  Could you please share your availability this week? Alternatively, here are some suggested times:  [Date, Time]  [Date, Time]  Looking forward to your reply.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2080,
+        -272
+      ],
+      "id": "1398b8eb-ae4d-415a-b6ff-9153d7412750",
+      "name": "Reply to a message",
+      "webhookId": "6c4be188-1aa7-4547-89ee-3c678d946f13",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "labelIds": [
+          "Label_5808745379444696491"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1712,
+        -272
+      ],
+      "id": "003620c4-65ff-4521-8e0e-9bf022263e83",
+      "name": "Add label to message1",
+      "webhookId": "66b8758c-5719-4450-980b-0bed874d0496",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "emailType": "text",
+        "message": "=I’d like to request a consultation regarding n8n email automation. Could we arrange a short call to review my requirements and explore possible solutions?  Please let me know your available times, or feel free to suggest a slot that works best for you.  Best regards,",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2048,
+        -112
+      ],
+      "id": "b74d9b15-ea6b-4629-a6aa-fa5ed86d96d8",
+      "name": "Reply to a message1",
+      "webhookId": "f41fbf3a-dc54-4dfc-96bf-98ae1bd42d10",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": [
+          "Label_5016154893310311246"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1744,
+        48
+      ],
+      "id": "65c1479a-f976-415f-a333-40ed910ef48c",
+      "name": "Add label to message2",
+      "webhookId": "9491cc99-9f85-4ed2-8a65-63a181b59ed9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "emailType": "text",
+        "message": "=I’d like to request a consultation regarding payment processes and system integrations. Could we arrange a short call to go over my requirements and discuss possible solutions?  Please let me know your availability, or suggest a time that works best for you.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1984,
+        32
+      ],
+      "id": "1fcf62d3-cba3-4df3-a70a-47acf25ca997",
+      "name": "Reply to a message2",
+      "webhookId": "a3642be2-5ea2-4932-8f47-f2455efa3a36",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "labelIds": [
+          "Label_8490025409127016548"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1712,
+        240
+      ],
+      "id": "9ccd4896-5c49-49a2-bdee-6156ddb73380",
+      "name": "Add label to message3",
+      "webhookId": "66108a8d-0bb0-4b13-9c55-9643714964cd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('TOPLU CALISMAK ICIN NOTLAR').item.json.messageId }}",
+        "emailType": "text",
+        "message": "=I’d like to request a consultation regarding some additional workflow needs outside of standard categories. Could we schedule a short call to review details and explore solutions?  Kindly share your available times or propose a convenient slot.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        240
+      ],
+      "id": "f2637090-f6b1-4479-a750-2961080842f8",
+      "name": "Reply to a message3",
+      "webhookId": "0952dd21-37d2-4892-b617-2cd0142a52f9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yTBSPnAZj5cJny2K",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "İSİM VARSA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "İSİM YOKSA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "İSİM YOKSA": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "İSİM VARSA": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "TOPLU CALISMAK ICIN NOTLAR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOPLU CALISMAK ICIN NOTLAR": {
+      "main": [
+        [
+          {
+            "node": "MAIL SINIFLANDIRICI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "MAIL SINIFLANDIRICI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAIL SINIFLANDIRICI": {
+      "main": [
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message1": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message2": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message3": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "befc4c92-beca-40f6-abcb-74c97039a4d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "97d5f5ecc1f6faa4e2adb7e9610b4433c5901a69c3c35f7ad98d3b18039d2556"
+  },
+  "id": "z6cLLYTU2t12E7yW",
+  "tags": []
+}
